@@ -147,8 +147,8 @@ def to_text(best):
     word += best[3][0]
     return word
 
-def method_2():
 
+def method_2():
     template_max_pixels = pd.read_csv("max_pixels_templates.csv", sep=',')
     template_max_pixels = template_max_pixels.set_index("Template", drop=False)
 
@@ -177,7 +177,8 @@ def method_2():
             res = cv2.matchTemplate(img, template, cv2.TM_CCOEFF_NORMED)
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
-            probabilities.append((template_name, max_val/template_max_pixels.loc[template_name, "Max Pixels"], (max_loc[0], max_loc[1]), (w, h)))
+            probabilities.append((template_name, max_val / template_max_pixels.loc[template_name, "Max Pixels"],
+                                  (max_loc[0], max_loc[1]), (w, h)))
 
         probabilities.sort(key=lambda tup: tup[1], reverse=True)
         best = probabilities[0:4]
@@ -204,9 +205,102 @@ def method_2():
         file.write("%s\n" % word)
         index += 1
 
-    print("Acerto:", str(float(correct/605)))
+    print("Acerto:", str(float(correct / 605)))
 
 
+def method_3():
+    words = []
+    for i in range(605):
+        img = process_captcha(captchas_dir + str(i) + ".png")
+
+        cv2.normalize(img, img, 1, 0, cv2.NORM_MINMAX)
+        img = np.float32(img)
+
+        templates_files = os.listdir(template_dir)
+        probabilities = []
+
+        for template_path in templates_files:
+            template_name = template_path.replace(".JPG", "")
+            template = cv2.imread(template_dir + template_path, cv2.IMREAD_GRAYSCALE)
+            _, thresh = cv2.threshold(template, 80, 255, cv2.THRESH_BINARY)
+
+            cv2.normalize(thresh, thresh, 1, 0, cv2.NORM_MINMAX)
+            template = np.float32(thresh)
+
+            w, h = template.shape[::-1]
+            res = cv2.matchTemplate(img, template, cv2.TM_CCOEFF_NORMED)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+            probabilities.append((template_name, max_val,
+                                  (max_loc[0], max_loc[1]), (w, h)))
+
+        probabilities.sort(key=lambda tup: tup[1], reverse=True)
+        best = probabilities[0:4]
+        best.sort(key=lambda tup: tup[2][0], reverse=False)
+
+        word = to_text(best)
+        print(word)
+        words.append(word)
+        print("%.2f %%" % (100 * (i / 604)))
+
+    file = open("Method_3.txt", 'w')
+    correct = 0
+
+    feedback_file = open("first_letter.txt", 'r')
+    feedback_data = feedback_file.read()
+    feedback_file.close()
+
+    feedback_data = feedback_data.split(sep='\n')
+
+    index = 0
+    for word in words:
+        if word == feedback_data[index]:
+            correct += 1
+        file.write("%s\n" % word)
+        index += 1
+
+    print("Acerto:", str(float(correct / 605) * 100) + "%")
+
+
+def retrieve_scores(captchas):
+    file = open('scores.csv', 'w')
+    file.write('Captcha,1,2,3,4,5,6,7,8,9,b,c,d,f,g,h,j,k,l,m,n,p,r,s,t,v,w,x,z\n')
+    for i in captchas:
+        img = process_captcha(captchas_dir + str(i) + ".png")
+
+        cv2.normalize(img, img, 1, 0, cv2.NORM_MINMAX)
+        img = np.float32(img)
+
+        templates_files = os.listdir(template_dir)
+        probabilities = [str(i)]
+
+        for template_path in templates_files:
+            template = cv2.imread(template_dir + template_path, cv2.IMREAD_GRAYSCALE)
+            _, thresh = cv2.threshold(template, 80, 255, cv2.THRESH_BINARY)
+
+            cv2.normalize(thresh, thresh, 1, 0, cv2.NORM_MINMAX)
+            template = np.float32(thresh)
+
+            res = cv2.matchTemplate(img, template, cv2.TM_CCOEFF_NORMED)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+            res_temp = cv2.matchTemplate(template, template, cv2.TM_CCOEFF_NORMED)
+            _, max_val_temp, _, _ = cv2.minMaxLoc(res_temp)
+            print(max_val_temp)
+
+            probabilities.append("\"" + str(max_val).replace(".", ",") + "\"")
+
+        file.write(','.join(probabilities) + '\n')
+
+    file.close()
+
+
+# errors = [11, 13, 32, 38, 44, 45, 61, 98, 105, 122, 126, 147, 155, 185, 243, 261, 287, 297, 301, 316, 342, 364, 397,
+#           404, 406, 444, 489, 531, 557, 572, 582, 598]
+
+# retrieve_scores(errors)
+
+method_3()
 
 # templates_files = os.listdir(template_dir)
 #
@@ -219,22 +313,36 @@ def method_2():
 #     cv2.normalize(thresh, thresh, 1, 0, cv2.NORM_MINMAX)
 #     thresh = np.float32(thresh)
 #
-#     skel = skeletonize(np.array(thresh, dtype=np.float32))
-#     skel = np.array(skel, dtype=np.float32)
+#     # skel = skeletonize(np.array(thresh, dtype=np.float32))
+#     # skel = np.array(skel, dtype=np.float32)
 #
-#     res = cv2.matchTemplate(thresh, skel, cv2.TM_CCOEFF_NORMED)[0][0]
+#     res = cv2.matchTemplate(thresh, thresh, cv2.TM_CCOEFF_NORMED)[0][0]
 #     print(template_name + "," + str(res))
-
+#
 # template_max_pixels = pd.read_csv("max_pixels_templates.csv", sep=',')
 # template_max_pixels = template_max_pixels.set_index("Template", drop = False)
 #
 # print(template_max_pixels.loc["1", "Max Pixels"])
 
+# file = open('Method_3.txt', 'r')
+# data = file.read().split(sep='\n')
+# file.close()
+#
+# positions = []
+# i = 0
+#
+# file = open('gabarito.txt', 'r')
+# gabarito = file.read().split(sep='\n')
+# file.close()
+#
+# print("Captcha,Predição,Correta")
+#
+# for val in data:
+#     if val != gabarito[i]:
+#         print(str(i) + ',' + val + ',' + gabarito[i])
+#
+#     i += 1
 
-method_2()
-#
-# feedback_file = open("first_letter.txt", 'r')
-# feedback_data = feedback_file.read()
-# feedback_file.close()
-#
-# print(feedback_data.split(sep='\n')[0])
+# print(positions)
+# print(data[positions])
+# print(len(positions))
