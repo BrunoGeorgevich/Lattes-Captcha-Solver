@@ -211,6 +211,6 @@ pip-selfcheck.json
 ./Characters/
 ./Old/
 ./images/
-
+./Model/
 # End of https://www.gitignore.io/api/python,pycharm
 
