@@ -210,7 +210,7 @@ pip-selfcheck.json
 ./Captchas/
 ./Characters/
 ./Old/
-
+./images/
 
 # End of https://www.gitignore.io/api/python,pycharm
 
