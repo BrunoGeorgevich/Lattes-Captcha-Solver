@@ -11,10 +11,11 @@ To download the database, use this [link](https://1drv.ms/f/s!Aip6Rxy4mdnuhZAaCt
 * Python 3.6.8
 * Pandas 0.24.0
 * Numpy 1.15.4
+* Argparse 1.1
 
 ## Run
 ```bash
-python3 main.py
+python3 main.py --method [Naive|CNN]
 ```
 
 ## References
