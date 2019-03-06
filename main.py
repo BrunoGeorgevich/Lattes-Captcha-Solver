@@ -3,8 +3,6 @@ import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import matplotlib.pyplot as plt
-from skimage.morphology import skeletonize
 
 from Tools import label_map_util
 
