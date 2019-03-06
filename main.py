@@ -1,5 +1,6 @@
 import os
 import cv2
+import argparse
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -150,6 +151,14 @@ def cnn_method():
     f.close()
 
 #%%
-naive_method()    
-#%%
-cnn_method()
+
+parser = argparse.ArgumentParser(description='Lattes Captcha Solver.')
+parser.add_argument('--method', required=False, default='Naive', type=str, help='The method that will be used')
+args = parser.parse_args()
+
+if args.method == 'Naive':
+    naive_method()   
+elif args.method == 'CNN':
+    cnn_method()
+else:
+    print("Choose a possible method : Naiva or CNN")
