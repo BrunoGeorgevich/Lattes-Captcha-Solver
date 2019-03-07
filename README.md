@@ -2,7 +2,11 @@
 A simple software capable of solve Captchas from Lattes CNPq platform.
 
 ## Preparation
-To download the database, use this [link](https://1drv.ms/f/s!Aip6Rxy4mdnuhZAaCt0sEgeYfpe7TQ) and download all the folders of it to the repository of the project.
+To run the project will be necessary download the images folder, to access the validation dataset, the model folder, to perform the CNN method, and the best template letters, to use the Naive method. The links to download the folders above mentioned can be found bellow:
+
+- **Images** : ([Link](https://my.pcloud.com/publink/show?code=XZy02q7ZjsXlBye88GVzVNtJx57brRdoBsnV))
+- **Model**  : ([Link](https://my.pcloud.com/publink/show?code=XZF02q7ZAMv4pRB08Nm3iWj8152eeLPvfuUk))
+- **Templates** : ([Link](https://my.pcloud.com/publink/show?code=XZ6V2q7ZdD3TKuqvUMko9dDKuKSUF7XTbhJk))
 
 ## Requisites
 
