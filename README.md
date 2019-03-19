@@ -4,7 +4,7 @@ A simple software capable of solve Captchas from Lattes CNPq platform.
 ## Preparation
 To run the project will be necessary download the images folder, to access the validation dataset, the model folder, to perform the CNN method, and the best template letters, to use the Naive method. The links to download the folders above mentioned can be found bellow:
 
-- **Images**, **Model** and **Templates** : ([Link](https://my.pcloud.com/publink/show?code=VZBJ2q7ZlfCel0VyrHziBPr49OlMqLvAVAck))
+- **Images**, **Model**, **Templates** and **Other Files**: ([Link](https://my.pcloud.com/publink/show?code=VZPXWt7ZvPQIfvmeemSLuAJlfoWQORafFidy))
 
 ## Requisites
 
@@ -14,10 +14,13 @@ To run the project will be necessary download the images folder, to access the v
 * Pandas 0.24.0
 * Numpy 1.15.4
 * Argparse 1.1
+* Captcha 0.3
 
 ## Run
 ```bash
-python3 main.py --method [Naive|CNN]
+python3 main.py -m [Naive|CNN] -i [True|False] -ip PATH/TO/IMAGE -mf PATH/TO/MODEL
+or
+python3 main.py -m [Naive|CNN] -fp PATH/TO/IMAGES/FOLDER -n NUMOFSAMPLES -ff FEEDBACKFILE -mf PATH/TO/MODEL
 ```
 
 ## References
