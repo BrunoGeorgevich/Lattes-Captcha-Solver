@@ -7,23 +7,6 @@ import tensorflow as tf
 
 from Tools import label_map_util
 
-TEMPLATE_DIR = "Best/"
-DATA_DIR = "images/"
-VALIDATION_DIR = DATA_DIR + "validation/"
-FEEDBACK_DATA = pd.read_csv(DATA_DIR + 'validation.csv')['text']
-
-MODEL_NAME = 'Model'
-CWD_PATH = os.getcwd()
-PATH_TO_CKPT = os.path.join(CWD_PATH,MODEL_NAME,'frozen_inference_graph.pb')
-PATH_TO_LABELS = os.path.join(CWD_PATH,MODEL_NAME,'labelmap.pbtxt')
-NUM_CLASSES = 28
-NUM_VALIDATION_SAMPLES = 1000
-
-LABEL_MAP = label_map_util.load_labelmap(PATH_TO_LABELS)
-CATEGORIES = label_map_util.convert_label_map_to_categories(LABEL_MAP, max_num_classes=NUM_CLASSES, use_display_name=True)
-
-#%%
-
 def process_captcha(file_path):
     captcha = cv2.imread(file_path, cv2.IMREAD_COLOR)
     gray = cv2.cvtColor(captcha, cv2.COLOR_BGR2GRAY)
@@ -96,6 +79,37 @@ def naive_method():
 
     print("Accuracy:", str(float(correct / NUM_VALIDATION_SAMPLES) * 100) + "%")   
 
+def naive_method_one_image(imagename):
+    img = process_captcha(imagename)
+
+    cv2.normalize(img, img, 1, 0, cv2.NORM_MINMAX)
+    img = np.float32(img)
+
+    templates_files = os.listdir(TEMPLATE_DIR)
+    probabilities = []
+
+    for template_path in templates_files:
+        template_name = template_path.replace(".JPG", "")
+        template = cv2.imread(TEMPLATE_DIR + template_path, cv2.IMREAD_GRAYSCALE)
+        _, thresh = cv2.threshold(template, 80, 255, cv2.THRESH_BINARY)
+
+        cv2.normalize(thresh, thresh, 1, 0, cv2.NORM_MINMAX)
+        template = np.float32(thresh)
+
+        w, h = template.shape[::-1]
+        res = cv2.matchTemplate(img, template, cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+        probabilities.append((template_name, max_val,
+                              (max_loc[0], max_loc[1]), (w, h)))
+
+    probabilities.sort(key=lambda tup: tup[1], reverse=True)
+    best = probabilities[0:4]
+    best.sort(key=lambda tup: tup[2][0], reverse=False)
+
+    word = str.upper(to_text(best))
+    print(word)
+
 def cnn_method():
     detection_graph = tf.Graph()
     with detection_graph.as_default():
@@ -143,22 +157,91 @@ def cnn_method():
             correct += 1
             
         f.write('{},{}\n'.format(IMAGE_NAME, word))
-        print('{:6.2f}% -> {}'.format((index/(NUM_VALIDATION_SAMPLES - 1))*100, word))
+        print('{:6.2f}% -> {} (Accuracy: {:6.2f}%)'
+              .format((index/(NUM_VALIDATION_SAMPLES - 1))*100, word, float(correct / NUM_VALIDATION_SAMPLES) * 100))
         
     
     print("Accuracy:", str(float(correct / NUM_VALIDATION_SAMPLES) * 100) + "%")   
     
-    f.close()
+    f.close() 
 
+def cnn_method_one_image(imagename):
+    detection_graph = tf.Graph()
+    with detection_graph.as_default():
+        od_graph_def = tf.GraphDef()
+        with tf.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
+            serialized_graph = fid.read()
+            od_graph_def.ParseFromString(serialized_graph)
+            tf.import_graph_def(od_graph_def, name='')
+    
+        sess = tf.Session(graph=detection_graph)
+        
+    image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
+    detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
+    detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
+    detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
+    num_detections = detection_graph.get_tensor_by_name('num_detections:0')
+     
+        
+    IMAGE_NAME = imagename
+    PATH_TO_IMAGE = os.path.join(os.getcwd(),IMAGE_NAME)
+    
+    image = cv2.imread(PATH_TO_IMAGE)
+    image_expanded = np.expand_dims(image, axis=0)
+    
+    (boxes, scores, classes, num) = sess.run(
+        [detection_boxes, detection_scores, detection_classes, num_detections],
+        feed_dict={image_tensor: image_expanded})
+    
+    selected = []
+    
+    for idx in range(4):
+        selected.append((np.squeeze(boxes)[idx],CATEGORIES[np.squeeze(classes).astype(np.int32)[idx] - 1]))
+        
+    selected.sort(key=lambda tup: tup[0][1])
+    word = str.upper(''.join([select[1]['name'] for select in selected]))
+    print(word)
+        
+        
 #%%
 
 parser = argparse.ArgumentParser(description='Lattes Captcha Solver.')
-parser.add_argument('--method', required=False, default='Naive', type=str, help='The method that will be used')
+parser.add_argument('-m','--method', required=False, default='Naive', type=str, help='The method that will be used')
+parser.add_argument('--image', required=False, default=False, type=bool, help='If is a batch of images or only one')
+parser.add_argument('--imagepath', required=False, default='', type=str, help='Image path')
+parser.add_argument('-fp','--folderpath', required=False, default='', type=str, help='Folder path')
+parser.add_argument('-ff','--feedbackfile', required=False, default='', type=str, help='Folder path')
+parser.add_argument('-n','--num_samples', required=False, default='1000', type=int, help='Number of Files')
+parser.add_argument('-mf','--model_folder', required=False, default='Model/Original', type=str, help='Number of Files')
 args = parser.parse_args()
 
+if not args.image:
+    VALIDATION_DIR = args.folderpath
+    NUM_VALIDATION_SAMPLES = args.num_samples
+    FEEDBACK_DATA = pd.read_csv(args.feedbackfile)['text']
+    
+MODEL_FOLDER = args.model_folder
+
+TEMPLATE_DIR = "Best/"
+DATA_DIR = "images/"
+
+CWD_PATH = os.getcwd()
+NUM_CLASSES = 28
+
+PATH_TO_CKPT = os.path.join(CWD_PATH,MODEL_FOLDER,'frozen_inference_graph.pb')
+PATH_TO_LABELS = os.path.join(CWD_PATH,MODEL_FOLDER,'labelmap.pbtxt')
+LABEL_MAP = label_map_util.load_labelmap(PATH_TO_LABELS)
+CATEGORIES = label_map_util.convert_label_map_to_categories(LABEL_MAP, max_num_classes=NUM_CLASSES, use_display_name=True)
+
 if args.method == 'Naive':
-    naive_method()   
+    if args.image:
+        naive_method_one_image(args.imagepath)
+    else:
+        naive_method()
 elif args.method == 'CNN':
-    cnn_method()
+    if args.image:
+        cnn_method_one_image(args.imagepath)
+    else:
+        cnn_method()
 else:
-    print("Choose a possible method : Naiva or CNN")
+    print("Choose a possible method : Naive or CNN")
