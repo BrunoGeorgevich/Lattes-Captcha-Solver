@@ -207,12 +207,12 @@ def cnn_method_one_image(imagename):
 
 parser = argparse.ArgumentParser(description='Lattes Captcha Solver.')
 parser.add_argument('-m','--method', required=False, default='Naive', type=str, help='The method that will be used')
-parser.add_argument('--image', required=False, default=False, type=bool, help='If is a batch of images or only one')
-parser.add_argument('--imagepath', required=False, default='', type=str, help='Image path')
+parser.add_argument('-i','--image', required=False, default=False, type=bool, help='If is a batch of images or only one')
+parser.add_argument('-ip','--imagepath', required=False, default='', type=str, help='Image path')
 parser.add_argument('-fp','--folderpath', required=False, default='', type=str, help='Folder path')
-parser.add_argument('-ff','--feedbackfile', required=False, default='', type=str, help='Folder path')
+parser.add_argument('-ff','--feedbackfile', required=False, default='', type=str, help='Feedback File path')
 parser.add_argument('-n','--num_samples', required=False, default='1000', type=int, help='Number of Files')
-parser.add_argument('-mf','--model_folder', required=False, default='Model/Original', type=str, help='Number of Files')
+parser.add_argument('-mf','--model_folder', required=False, default='Model/Original', type=str, help='Path to the model folder')
 args = parser.parse_args()
 
 if not args.image:
