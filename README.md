@@ -4,8 +4,7 @@ A simple software capable of solve Captchas from Lattes CNPq platform.
 ## Preparation
 To run the project will be necessary download the images folder, to access the validation dataset, the model folder, to perform the CNN method, and the best template letters, to use the Naive method. The links to download the folders above mentioned can be found bellow:
 
-- **Images**, **Model**, **Templates** and **Other Files**: ([Link](https://my.pcloud.com/publink/show?code=VZPXWt7ZvPQIfvmeemSLuAJlfoWQORafFidy))
-
+- [**Template**](https://www.dropbox.com/sh/03yow7q7g5hiy1r/AAB0Y7KRuX180bab-eEtMij-a?dl=0), [**Fonts**](https://www.dropbox.com/sh/si3jh3n0ry2qsgq/AADDViPr73WsnaH080muKI1ha?dl=0), [**Images**](https://www.dropbox.com/sh/8y5ivyn83dlxxt3/AABJa3NcnpH1YUzwIvjRMxJPa?dl=0) and [**Model**](https://www.dropbox.com/sh/8y5ivyn83dlxxt3/AABJa3NcnpH1YUzwIvjRMxJPa?dl=0), 
 ## Requisites
 
 * Tensorflow 1.12
